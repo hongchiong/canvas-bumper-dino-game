@@ -62,8 +62,8 @@ var dino2 = {
         player2.onload = function(){
             var p2 = new createjs.Bitmap(player2);
 
-            p2.scaleX = 1.5;
-            p2.scaleY = 1.5;
+            p2.scaleX = 1.75;
+            p2.scaleY = 1.75;
 
             p2.x = dino2.startX;
             p2.y = dino2.startY;
