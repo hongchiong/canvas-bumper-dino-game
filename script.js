@@ -1,24 +1,26 @@
     // Configuration.
 //dino1
 var dino1 = {
-    startX: 200,
+    startX: 1000 - 200,
     startY: 350,
-    topSpeed: 10,
-    acceleration: 0.25,
-    src: "dinos/gifs/DinoSprites_doux.gif"
+    topSpeed: 15,
+    acceleration: 0.2,
+    src: "dinos/gifs/DinoSprites_doux.gif",
+    score: 0
 };
 
 var dino2 = {
-    startX: document.body.clientWidth - 200,
+    startX: 200,
     startY: 350,
-    topSpeed: 10,
-    acceleration: 0.25,
-    src: "dinos/gifs/DinoSprites_mort.gif"
+    topSpeed: 15,
+    acceleration: 0.2,
+    src: "dinos/gifs/DinoSprites_mort.gif",
+    score: 0
 };
 
 
 //map1
-    var friction = 0.5;
+    var friction = 0.2;
     var brakeFriction = 1;
 
 //math functions.
@@ -43,8 +45,12 @@ var dino2 = {
 
     window.onload = function(){
         var theCanvas = document.getElementById("theCanvas");
-        theCanvas.width = document.body.clientWidth;
-        theCanvas.height = document.body.clientHeight;
+        var updateScores = function() {
+            document.querySelector(".redScore").textContent = dino2.score;
+            document.querySelector(".blueScore").textContent = dino1.score;
+        };
+
+        updateScores();
 
         var stage = new createjs.Stage(theCanvas);
 
@@ -56,28 +62,28 @@ var dino2 = {
         player2.onload = function(){
             var p2 = new createjs.Bitmap(player2);
 
-            p2.scaleX = 2.5;
-            p2.scaleY = 2.5;
+            p2.scaleX = 1.5;
+            p2.scaleY = 1.5;
 
             p2.x = dino2.startX;
             p2.y = dino2.startY;
 
-            p2.regX = p2.image.width * 2.5;
-            p2.regY =  p2.image.height * 2.5;
+            p2.regX = p2.image.width;
+            p2.regY =  p2.image.height;
             p2.rotation = 0;
 
             stage.addChild(p2);
 
             var p1 = new createjs.Bitmap(player1);
 
-            p1.scaleX = 2.5;
-            p1.scaleY = 2.5;
+            p1.scaleX = 1.5;
+            p1.scaleY = 1.5;
 
             p1.x = dino1.startX;
             p1.y = dino1.startY;
 
-            p1.regX = p1.image.width * 2.5;
-            p1.regY =  p1.image.height * 2.5;
+            p1.regX = p1.image.width;
+            p1.regY =  p1.image.height;
             p1.rotation = 0;
 
             stage.addChild(p1);
@@ -109,9 +115,21 @@ var dino2 = {
             var oldRotation2;
             var oldY2 = 0, oldX2 = 0;
 
+            var resetPos = function() {
+                p1.x = dino1.startX;
+                p1.y = dino1.startY;
+                p1.rotation = 0;
+                speed1 = 0;
+                p2.x = dino2.startX;
+                p2.y = dino2.startY;
+                p2.rotation = 0;
+                speed2 = 0;
+                theCanvas.height = 800;
+                theCanvas.width = 1000;
+            };
+
             createjs.Ticker.addEventListener("tick", function(){
 
-                    console.log(p1.rotation, p2.rotation);
                 if(keysDown[1])
                 {
                     // If the up key is down.
@@ -151,10 +169,15 @@ var dino2 = {
                 var recX1 = p1.x;
                 var recY1 = p1.y;
 
-                if(recX1 >= theCanvas.width
-                    || recX1 <= 0
-                    || recY1 >= theCanvas.height
-                    || recY1 <= 0) {return console.log("you lose");}
+                if(recX1 >= theCanvas.width - 20
+                    || recX1 <= 20
+                    || recY1 >= theCanvas.height + 20
+                    || recY1 <= 20)
+                {
+                    dino2.score++;
+                    updateScores();
+                    resetPos();
+                }
 
                 // Little performance improvement.
                 var checkSpeed1 = speed1;
@@ -210,10 +233,15 @@ var dino2 = {
                 var recX2 = p2.x;
                 var recY2 = p2.y;
 
-                if(recX2 >= theCanvas.width
-                    || recX2 <= 0
-                    || recY2 >= theCanvas.height
-                    || recY2 <= 0) {return console.log("you lose");}
+                if(recX2 >= theCanvas.width - 20
+                    || recX2 <= 20
+                    || recY2 >= theCanvas.height + 20
+                    || recY2 <= 20)
+                {
+                    dino1.score++;
+                    updateScores();
+                    resetPos();
+                }
 
                 // Little performance improvement.
                 var checkSpeed2 = speed2;
@@ -232,7 +260,7 @@ var dino2 = {
                 var dx = recX1 - recX2;
                 var dy = recY1 - recY2;
                 var distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < p1.image.width * 2.5) {
+                if (distance < 60) {
                     // collision detected!
                     console.log("we lose");
                     var x1 = speed1 * sinDegree(p1.rotation);
@@ -245,14 +273,26 @@ var dino2 = {
                     var x2new = x1;
                     var y2new = y1;
 
+                    if (speed1 > speed2) {
+                        p2.rotation = p1.rotation;
+                        // p1.rotation += 180;
+                    } else if (speed2 > speed1) {
+                        p1.rotation = p2.rotation;
+                        // p2.rotation += 180;
+                    }
+
                     speed1 = Math.sqrt(x1new*x1new + y1new*y1new);
                     speed2 = Math.sqrt(x2new*x2new + y2new*y2new);
 
-                    var abc = p1.rotation
-                    p1.rotation = p2.rotation;
-                    p2.rotation = abc;
+                    // p1.rotation = p1.rotation + 180;
+                    // p2.rotation = p2.rotation + 180;
+                    // var oh1 = x1new/speed1;
+                    // var oh2 = x2new/speed2;
+                    // p1.rotation = toDegrees(Math.asin(x1new/speed1));
+                    // p2.rotation = toDegrees(Math.asin(x2new/speed2));
                 }
-
+                theCanvas.height--;
+                theCanvas.width--;
                 stage.update();
             });
         }
